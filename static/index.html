@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="GoogleInOneDay — Concurrent web crawler and real-time search engine dashboard">
+    <title>GoogleInOneDay — Web Crawler & Search</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <!-- Navigation Tabs -->
+    <nav class="nav-bar" id="nav-bar">
+        <div class="nav-brand">
+            <span class="brand-icon">🕷️</span>
+            <span class="brand-text">GoogleInOneDay</span>
+        </div>
+        <div class="nav-tabs">
+            <button class="nav-tab active" data-tab="crawler" id="tab-crawler">
+                <span class="tab-icon">🚀</span>
+                <span class="tab-label">Crawler</span>
+            </button>
+            <button class="nav-tab" data-tab="status" id="tab-status">
+                <span class="tab-icon">📊</span>
+                <span class="tab-label">Status</span>
+            </button>
+            <button class="nav-tab" data-tab="search" id="tab-search">
+                <span class="tab-icon">🔍</span>
+                <span class="tab-label">Search</span>
+            </button>
+        </div>
+        <div class="nav-meta">
+            <span class="meta-badge" id="meta-pages" title="Total indexed pages">
+                <span class="badge-dot green"></span>
+                <span id="total-pages-count">0</span> pages
+            </span>
+            <span class="meta-badge" id="meta-version" title="Index version">
+                v<span id="index-version">0</span>
+            </span>
+        </div>
+    </nav>
+
+    <!-- ═══ CRAWLER TAB ═══ -->
+    <section class="tab-content active" id="content-crawler">
+        <div class="page-header">
+            <h1>Start a Crawl</h1>
+            <p class="page-subtitle">Provide a seed URL and depth to begin indexing the web.</p>
+        </div>
+
+        <div class="card glass" id="crawler-form-card">
+            <form id="crawl-form">
+                <div class="form-row">
+                    <div class="form-group flex-2">
+                        <label for="input-origin">Origin URL</label>
+                        <input type="url" id="input-origin" placeholder="https://en.wikipedia.org/wiki/Web_crawler" required>
+                    </div>
+                    <div class="form-group flex-1">
+                        <label for="input-depth">Depth (k)</label>
+                        <input type="number" id="input-depth" min="1" max="100" value="2" required>
+                    </div>
+                </div>
+
+                <details class="advanced-settings" id="advanced-toggle">
+                    <summary>Advanced Settings</summary>
+                    <div class="form-row three-col">
+                        <div class="form-group">
+                            <label for="input-rate">Max Rate (req/sec)</label>
+                            <input type="number" id="input-rate" min="0.1" max="100" step="0.1" value="10">
+                        </div>
+                        <div class="form-group">
+                            <label for="input-concurrent">Max Concurrent</label>
+                            <input type="number" id="input-concurrent" min="1" max="100" value="20">
+                        </div>
+                        <div class="form-group">
+                            <label for="input-queue">Max Queue Size</label>
+                            <input type="number" id="input-queue" min="100" max="100000" value="10000">
+                        </div>
+                    </div>
+                </details>
+
+                <button type="submit" class="btn btn-primary" id="btn-crawl">
+                    <span class="btn-icon">🕷️</span>
+                    Start Crawl
+                </button>
+            </form>
+        </div>
+
+        <!-- Job History -->
+        <div class="section-header">
+            <h2>Crawl History</h2>
+            <button class="btn btn-ghost btn-sm" id="btn-refresh-jobs">Refresh</button>
+        </div>
+        <div class="card glass" id="jobs-table-card">
+            <table class="data-table" id="jobs-table">
+                <thead>
+                    <tr>
+                        <th>Job ID</th>
+                        <th>Origin URL</th>
+                        <th>Depth</th>
+                        <th>Status</th>
+                        <th>Pages</th>
+                        <th>Errors</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="jobs-tbody">
+                    <tr class="empty-row">
+                        <td colspan="7">No crawl jobs yet. Start one above!</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- ═══ STATUS TAB ═══ -->
+    <section class="tab-content" id="content-status">
+        <div class="page-header">
+            <h1>Crawl Status</h1>
+            <p class="page-subtitle">Real-time monitoring of active and completed crawl jobs.</p>
+        </div>
+
+        <!-- Global Metrics -->
+        <div class="metrics-grid" id="global-metrics">
+            <div class="metric-card glass">
+                <div class="metric-value" id="metric-active-jobs">0</div>
+                <div class="metric-label">Active Jobs</div>
+            </div>
+            <div class="metric-card glass">
+                <div class="metric-value" id="metric-total-pages">0</div>
+                <div class="metric-label">Pages Crawled</div>
+            </div>
+            <div class="metric-card glass">
+                <div class="metric-value" id="metric-total-tokens">0</div>
+                <div class="metric-label">Unique Tokens</div>
+            </div>
+            <div class="metric-card glass">
+                <div class="metric-value" id="metric-index-version">0</div>
+                <div class="metric-label">Index Version</div>
+            </div>
+        </div>
+
+        <!-- Per-Job Status Cards -->
+        <div class="section-header">
+            <h2>Job Details</h2>
+        </div>
+        <div id="job-details-container">
+            <div class="card glass empty-state">
+                <p>No jobs to display. Start a crawl from the Crawler tab.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══ SEARCH TAB ═══ -->
+    <section class="tab-content" id="content-search">
+        <div class="page-header">
+            <h1>Search</h1>
+            <p class="page-subtitle">Query indexed pages in real-time. Results update live as new pages are crawled.</p>
+        </div>
+
+        <div class="card glass search-box">
+            <div class="search-input-wrapper">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="search-input" placeholder="Search indexed pages..." autocomplete="off">
+                <button class="btn btn-ghost btn-sm" id="btn-lucky" title="Feeling Lucky — random word">🍀 Lucky</button>
+            </div>
+        </div>
+
+        <!-- Search Meta -->
+        <div class="search-meta" id="search-meta" style="display: none;">
+            <span id="search-result-count">0 results</span>
+            <span class="search-meta-sep">·</span>
+            <span id="search-live-badge" class="live-badge">
+                <span class="live-dot"></span>
+                Live
+            </span>
+        </div>
+
+        <!-- Search Results -->
+        <div id="search-results">
+            <div class="card glass empty-state" id="search-empty">
+                <p>Enter a query to search indexed pages.</p>
+            </div>
+        </div>
+    </section>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>
